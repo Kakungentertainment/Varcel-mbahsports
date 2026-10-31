@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Mbah Sports - 083824692223</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome untuk Icon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        
+        /* --- MENCEGAH TEKS DISALIN / DIBLOK --- */
+        body {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* --- STYLES FOR LOADING BOLA (SPLASH SCREEN) --- */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999999;
+            transition: .6s;
+        }
+
+        .ball {
+            width: 220px;
+            animation: zoomBounce 1.2s ease-out forwards, spin 2s linear infinite;
+            filter: drop-shadow(0 0 25px rgba(255,255,255,.8));
+        }
+
+        @keyframes zoomBounce {
+            0% { transform: scale(.1) rotate(0deg); opacity: 0; }
+            60% { transform: scale(1.15) rotate(360deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #ffffff;
+            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), 
+                        url('https://cdn.phototourl.com/member/2026-10-29-d4a162e4-b6ac-4b3c-a6cb-13b30c8e8f73.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: scroll;
+        }
+
+        /* --- ANIMASI RIPPLE EFEK PADA KARTU --- */
+        .match-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .match-card:active {
+            transform: scale(0.97);
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.4);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* --- ANIMASI PULSE BESAR KECIL TOMBOL TUTUP OK --- */
+        @keyframes pulseScale {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); }
+            50% { transform: scale(1.06); box-shadow: 0 0 20px 8px rgba(234, 179, 8, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+        }
+
+        .btn-pulse {
+            animation: pulseScale 1.2s infinite ease-in-out;
+        }
+
+        .ads-container {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            background: transparent;
+        }
+
+        .ads-slider { display: flex; width: 100%; }
+        .ads-slide { min-width: 100%; box-sizing: border-box; text-align: center; }
+        .ads-slide img { width: 100%; height: auto; border-radius: 0.5rem; display: block; }
+
+        .wa-link-text {
+            background: transparent;
+            color: #ffffff;
+            text-align: center;
+            padding: 6px 2px 2px 2px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: "Times New Roman", Times, Georgia, serif;
+            line-height: 1.3;
+        }
+
+        /* UKURAN TEKS LINK BIRU DIPERBESAR (DARIPADA 10px MENJADI 12px) */
+        .wa-link-text a {
+            color: #3b82f6;
+            text-decoration: underline;
+            word-break: break-all;
+            display: inline-block;
+            margin-top: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: "Times New Roman", Times, Georgia, serif;
+        }
+
+        /* STYLES PLAYER IFRAME FULLSCREEN */
+        #player-wrapper {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 999999;
+            display: none;
+            flex-direction: column;
+        }
+
+        #player-wrapper.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12" oncontextmenu="return false;">
+
+<!-- STRUKTUR LAYAR LOADING (SPLASH SCREEN) BOLA -->
+<div id="splash">
+    <img class="ball" src="https://cdn.phototourl.com/member/2026-10-27-1f2b4843-9594-4f07-9950-f81e4f00e554.png" alt="Loading Bola">
+</div>
+
+<!-- CONTAINER PLAYER OVERLAY (URL TETAP SAMA PADA DOMAIN KAMU) -->
+<div id="player-wrapper">
+    <div class="bg-[#121826] p-3 flex justify-between items-center border-b border-yellow-500/30">
+        <span class="text-xs font-bold text-yellow-400" id="player-title">Live Streaming</span>
+        <button onclick="closePlayer()" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95">
+            <i class="fa-solid fa-xmark"></i> Tutup
+        </button>
+    </div>
+    <iframe id="live-iframe" class="w-full h-full border-0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+</div>
+
+<div class="max-w-md mx-auto p-4 space-y-4">
+
+<!-- ADS CONTAINER -->
+<div class="ads-container">
+    <div class="ads-slider" id="adsSlider">
+        <div class="ads-slide">
+            <a href="https://wa.me/6283824692223?text=Halo%20min%2C%20saya%20mau%20order%20pembuatan%20web%2C%20boleh%20tanya%20harga%20dan%20detail%20pengerjaannya%3F" target="_blank">
+                <img src="https://cdn.phototourl.com/member/2026-10-29-3c73d8ad-8516-41af-9c4d-2da072112618.png" alt="Iklan 1">
+            </a>
+            <div class="wa-link-text">
+                KLIK UNTUK ORDER SEKARANG 👇🏻🤙<br>
+                <a href="https://wa.me/6283824692223?text=Halo%20min%2C%20saya%20mau%20order%20pembuatan%20web%2C%20boleh%20tanya%20harga%20dan%20detail%20pengerjaannya%3F" target="_blank">https://wa.me/6283824692223?text=Order%20web</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- IKLAN BANNER STATIS 320x50 (PAS DI TENGAH LAYAR) -->
+<div class="flex justify-center w-full my-2">
+    <div class="widget-content text-center w-[320px] overflow-hidden rounded-lg">
+<script>
+  atOptions = {
+    'key' : 'e79434283e7034252b8b824299f54299',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}
+  };
+</script>
+<script src="https://czernik.org/22/e79434283e7034252b8b824299f54299"></script>
+    </div>
+</div>
+
+<!-- HEADER -->
+<header class="flex justify-between items-center py-2 px-3.5 bg-[#121826] border border-white/30 border-b-0 rounded-2xl shadow-xl relative overflow-hidden">
+    <div class="absolute bottom-0 left-0 right-0 h-[2px] bg-red-600"></div>
+    <div class="flex items-center">
+        <img alt="Mbah Sports" class="h-6 object-contain" src="https://cdn.phototourl.com/member/2026-10-27-d282f262-ac6d-4e7a-b1ad-7acba0e955dd.png"/>
+    </div>
+    <div>
+        <a class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow-lg transition transform active:scale-95" href="https://saweria.co/Faizadiyatama" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-mug-hot text-xs"></i>
+            <span>Dukungan</span>
+        </a>
+    </div>
+</header>
+
+<!-- BANNER PENGUMUMAN -->
+<div class="bg-[#121826] border-t border-r border-b border-l-0 border-white/30 rounded-2xl p-3 flex items-center space-x-3 shadow-lg relative overflow-hidden">
+    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-yellow-400 rounded-l"></div>
+    <div class="text-yellow-400 text-lg pl-2 shrink-0 flex items-center justify-center">
+        <i class="fa-solid fa-bullhorn"></i>
+    </div>
+    <p class="text-[11px] text-gray-200 leading-snug font-medium">
+        <span class="text-yellow-400 font-bold">Mbah Sports Live!</span> Live pertandingan setiap hari akan berganti...
+    </p>
+</div>
+
+<!-- JUDUL SECTION -->
+<div class="pt-2">
+    <div class="flex items-center space-x-2">
+        <div class="text-yellow-400 text-base flex items-center justify-center bg-yellow-500/10 border border-yellow-500/30 w-7 h-7 rounded-lg">
+            <i class="fa-solid fa-futbol text-xs"></i>
+        </div>
+        <h2 class="text-xs font-black tracking-wider uppercase text-white flex items-center gap-1.5 whitespace-nowrap pr-3">
+            LIVE PERTANDINGAN <span class="text-yellow-400">HARI INI</span>
+        </h2>
+        <div class="h-0.5 bg-white flex-grow rounded-full"></div>
+    </div>
+    <div class="flex items-center mt-2 space-x-3">
+        <div class="h-[1px] bg-gradient-to-r from-yellow-500/80 to-transparent flex-grow"></div>
+        <p class="text-[10px] text-gray-300 font-medium tracking-wide shrink-0">Nonton pertandingan secara langsung, lengkap &amp; gratis!</p>
+    </div>
+</div>
+
+<!-- LIST PERTANDINGAN -->
+<div id="match-container" class="space-y-4">
+    <div class="text-center py-8 text-yellow-400 text-xs font-bold">
+        <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat sebentar cuy...
+    </div>
+</div>
+
+<!-- FITUR SECTION -->
+<div class="bg-[#121826]/95 backdrop-blur-md border border-white/30 rounded-2xl p-4 grid grid-cols-4 gap-y-4 divide-x divide-gray-800/80 shadow-xl">
+    <div class="flex flex-col items-center text-center px-1">
+        <div class="text-yellow-400 text-lg mb-1.5"><i class="fa-solid fa-shield-halved"></i></div>
+        <h5 class="text-[10px] font-black tracking-tight text-white leading-tight">100% GRATIS</h5>
+        <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Tanpa biaya langganan</p>
+    </div>
+    <div class="flex flex-col items-center text-center px-1">
+        <div class="text-yellow-400 text-lg mb-1.5"><i class="fa-solid fa-bolt"></i></div>
+        <h5 class="text-[10px] font-black tracking-tight text-white leading-tight">AKSES CEPAT</h5>
+        <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Streaming tanpa buffering</p>
+    </div>
+    <div class="flex flex-col items-center text-center px-1">
+        <div class="text-yellow-400 text-lg mb-1.5"><i class="fa-solid fa-tv"></i></div>
+        <h5 class="text-[10px] font-black tracking-tight text-white leading-tight">KUALITAS HD</h5>
+        <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Gambar jernih &amp; stabil</p>
+    </div>
+    <div class="flex flex-col items-center text-center px-1">
+        <div class="text-yellow-400 text-lg mb-1.5"><i class="fa-solid fa-mobile-screen-button"></i></div>
+        <h5 class="text-[10px] font-black tracking-tight text-white leading-tight">WAJIB CHROME</h5>
+        <p class="text-[9px] text-gray-400 mt-0.5 leading-tight">Di wajibkan menggunakan chrome</p>
+    </div>
+</div>
+
+<!-- TIPS BOX -->
+<div class="bg-[#121826]/95 backdrop-blur-md border border-white/30 rounded-2xl p-3.5 flex items-center space-x-3 shadow-lg">
+    <div class="text-yellow-400 text-base shrink-0">
+        <i class="fa-solid fa-star"></i>
+    </div>
+    <p class="text-[11px] text-gray-200 leading-snug font-medium">
+        <span class="text-yellow-400 font-extrabold tracking-wide">TIPS:</span> Jika terdapat kendala silahkan hubungi WA: 083824692223
+    </p>
+</div>
+
+<!-- FOOTER -->
+<footer class="text-center pt-2 pb-4 text-gray-400 text-[11px] font-medium">
+    <p><i class="fa-solid fa-lock text-[10px] mr-1"></i> © 2026 mbah.kakung.faiz • All Rights Reserved</p>
+</footer>
+
+</div>
+
+<!-- POPUP MODAL DINAMIS DENGAN LOGO PERTANDINGAN -->
+<div id="notif-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="border border-yellow-500/50 rounded-2xl p-5 max-w-xs w-full text-center shadow-2xl space-y-3" style="background-image: url('https://cdn.phototourl.com/member/2026-10-29-eb5a01f6-5c4b-47fd-8014-1aaa5b3ca77a.png'); background-size: cover; background-position: center;">
+        <div class="text-2xl">⚠️</div>
+        <h3 class="text-xs font-black text-yellow-400 tracking-wide uppercase">LIVE BELUM MULAI</h3>
+        
+        <div class="flex items-center justify-center space-x-3 bg-[#182232] py-2.5 px-3 rounded-xl border border-white/10">
+            <div class="flex flex-col items-center w-5/12">
+                <div class="w-10 h-10 bg-[#121826] rounded-full flex items-center justify-center p-1 mb-1 shadow">
+                    <img id="modal-logo1" class="w-7 h-7 object-contain" src="" alt="Tim 1"/>
+                </div>
+                <span id="modal-team1" class="text-[10px] font-extrabold text-white truncate max-w-full"></span>
+            </div>
+            
+            <span class="text-xs font-black text-yellow-500 italic">VS</span>
+            
+            <div class="flex flex-col items-center w-5/12">
+                <div class="w-10 h-10 bg-[#121826] rounded-full flex items-center justify-center p-1 mb-1 shadow">
+                    <img id="modal-logo2" class="w-7 h-7 object-contain" src="" alt="Tim 2"/>
+                </div>
+                <span id="modal-team2" class="text-[10px] font-extrabold text-white truncate max-w-full"></span>
+            </div>
+        </div>
+        
+        <p class="text-[11px] text-gray-300 font-medium pt-1">mulai 30 atau 10 menit menjelang kick off.</p>
+        
+        <button onclick="closeModal()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-extrabold text-xs py-2.5 rounded-xl transition btn-pulse active:scale-95">
+            TUTUP ( OK )
+        </button>
+    </div>
+</div>
+
+<script>
+    /* Mengunci URL agar selalu tetap pada domain kamu */
+    function lockURL() {
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.origin + window.location.pathname);
+        }
+    }
+    window.addEventListener('load', lockURL);
+
+    // MENGHAPUS LAYAR LOADING BOLA SETELAH 7 DETIK
+    setTimeout(() => {
+        let s = document.getElementById("splash");
+        if (s) {
+            s.style.opacity = "0";
+            setTimeout(() => { s.remove(); }, 600);
+        }
+    }, 7000);
+
+    const SPREADSHEET_API_URL = "https://script.google.com/macros/s/AKfycbxIqSUbIyAd_MBJ4Tgmm-mlj5HevPACl5HeQCK7Sgq9Gu6v5Jxx3XtrWf7QKcbI2gc/exec";
+    const DEFAULT_LOGO = "https://cdn.phototourl.com/member/2026-10-29-aa353f2f-5f79-4203-a0e2-1c95084f3e8e.png";
+    let hasLoadedOnce = false;
+
+    async function fetchMatches() {
+        const container = document.getElementById('match-container');
+        try {
+            let matches = null;
+            const cacheBusterUrl = SPREADSHEET_API_URL + "?t=" + new Date().getTime();
+            
+            try {
+                const response = await fetch(cacheBusterUrl);
+                if (response.ok) {
+                    matches = await response.json();
+                }
+            } catch (err) {
+                try {
+                    const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(cacheBusterUrl);
+                    const responseProxy = await fetch(proxyUrl);
+                    if (responseProxy.ok) {
+                        matches = await responseProxy.json();
+                    }
+                } catch (pErr) {
+                    console.warn("Proxy fetch error:", pErr);
+                }
+            }
+
+            if (!matches) {
+                if (!hasLoadedOnce) {
+                    container.innerHTML = '<div class="text-center text-red-500 text-xs font-bold py-4">HARAP REFRESH ATAU MASUK ULANG.</div>';
+                }
+                return;
+            }
+
+            if (!Array.isArray(matches) || matches.length === 0) {
+                container.innerHTML = '<div class="text-center text-yellow-400 text-xs font-bold py-4">Tidak ada pertandingan saat ini.</div>';
+                hasLoadedOnce = true;
+                return;
+            }
+
+            let htmlContent = '';
+            matches.forEach((data) => {
+                const badgeLive = data.badge_live || 'LIVE';
+                const namaTurnamen = data.nama_turnamen || 'CHINA OPEN';
+                const tim1Nama = data.tim1_nama || 'BADMINTON';
+                const tim1Logo = (data.tim1_logo && data.tim1_logo.trim() !== '' && data.tim1_logo.startsWith('http')) ? data.tim1_logo : DEFAULT_LOGO;
+                const waktu = data.waktu || '08.00';
+                const tim2Nama = data.tim2_nama || 'VENUE';
+                const tim2Logo = (data.tim2_logo && data.tim2_logo.trim() !== '' && data.tim2_logo.startsWith('http')) ? data.tim2_logo : DEFAULT_LOGO;
+                const tombolTeks = data.tombol_teks || 'TONTON LANGSUNG';
+                const statusLive = (data.status_live || 'SUDAH').toUpperCase().trim();
+                const urlLive = data.url_live || 'https://BOLA-LIVE-NO-IKLAN.github.io/Mbah_kakung';
+
+                const safeTim1 = tim1Nama.replace(/'/g, "\\'");
+                const safeTim2 = tim2Nama.replace(/'/g, "\\'");
+                const safeLogo1 = tim1Logo.replace(/'/g, "\\'");
+                const safeLogo2 = tim2Logo.replace(/'/g, "\\'");
+
+                htmlContent += `
+                <div onclick="handleCardClick(event, '${statusLive}', '${urlLive}', '${safeTim1}', '${safeTim2}', '${safeLogo1}', '${safeLogo2}')" class="match-card cursor-pointer rounded-2xl border border-yellow-500/40 shadow-2xl p-4 relative overflow-hidden" style="background: url('https://cdn.phototourl.com/member/2026-10-29-1cb18f8a-70b6-4f80-b956-84445280a8d0.png'); background-size: cover; background-position: center;">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded flex items-center space-x-1.5 shadow">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                            <span class="tracking-wider">${badgeLive}</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 text-[11px] font-bold text-white tracking-wider">
+                            <i class="fa-solid fa-trophy text-[10px] text-yellow-400"></i>
+                            <span>${namaTurnamen}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center my-3 px-1">
+                        <div class="text-center w-1/3">
+                            <div class="w-14 h-14 mx-auto bg-[#182232] rounded-full flex items-center justify-center shadow-inner mb-2" style="box-shadow: 0 0 0 2px #000000;">
+                                <img class="w-8 h-8 object-contain" src="${tim1Logo}"/>
+                            </div>
+                            <span class="text-[11px] font-extrabold tracking-wider text-white">${tim1Nama}</span>
+                        </div>
+                        <div class="text-center w-1/3 flex flex-col items-center justify-center">
+                            <div class="border border-yellow-500/60 bg-[#141b2b] rounded-xl py-1.5 px-3.5 shadow-md mb-1">
+                                <span class="text-xs font-black text-white tracking-widest">${waktu}</span>
+                            </div>
+                            <span class="text-xs font-black text-yellow-500 italic tracking-wider">VS</span>
+                        </div>
+                        <div class="text-center w-1/3">
+                            <div class="w-14 h-14 mx-auto bg-[#182232] rounded-full flex items-center justify-center shadow-inner mb-2" style="box-shadow: 0 0 0 2px #000000;">
+                                <img class="w-8 h-8 object-contain" src="${tim2Logo}"/>
+                            </div>
+                            <span class="text-[11px] font-extrabold tracking-wider text-white">${tim2Nama}</span>
+                        </div>
+                    </div>
+                    <div class="h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent my-3"></div>
+                    <div class="bg-[#141b2b] border border-yellow-500/20 rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 w-9 h-9 rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-tv text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black tracking-wide text-white mb-1">${tombolTeks}</h4>
+                                <p class="text-[10px] text-gray-400 font-medium">Klik untuk menonton sekarang</p>
+                            </div>
+                        </div>
+                        <div class="p-1 rounded-full border border-yellow-400">
+                            <button class="bg-yellow-400 text-black w-9 h-9 rounded-full flex items-center justify-center shadow-lg transition font-black">
+                                <i class="fa-solid fa-play text-xs ml-0.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = htmlContent;
+            hasLoadedOnce = true;
+
+        } catch (error) {
+            console.error(error);
+            if (!hasLoadedOnce) {
+                container.innerHTML = '<div class="text-center text-red-500 text-xs font-bold py-4">HARAP REFRESH ATAU MASUK ULANG.</div>';
+            }
+        }
+    }
+
+    function handleCardClick(event, status, url, tim1, tim2, logo1, logo2) {
+        const card = event.currentTarget;
+
+        const circle = document.createElement("span");
+        const diameter = Math.max(card.clientWidth, card.clientHeight);
+        const radius = diameter / 2;
+        const rect = card.getBoundingClientRect();
+
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${event.clientX - rect.left - radius}px`;
+        circle.style.top = `${event.clientY - rect.top - radius}px`;
+        circle.classList.add("ripple");
+
+        const ripple = card.getElementsByClassName("ripple")[0];
+        if (ripple) {
+            ripple.remove();
+        }
+        card.appendChild(circle);
+
+        setTimeout(() => {
+            if (status === 'BELUM') {
+                document.getElementById('modal-team1').innerText = tim1;
+                document.getElementById('modal-team2').innerText = tim2;
+                document.getElementById('modal-logo1').src = logo1;
+                document.getElementById('modal-logo2').src = logo2;
+                
+                document.getElementById('notif-modal').classList.remove('hidden');
+            } else {
+                // Membuka Stream dalam iframe overlay
+                openPlayer(url, `${tim1} VS ${tim2}`);
+            }
+        }, 200);
+    }
+
+    function openPlayer(url, title) {
+        const wrapper = document.getElementById('player-wrapper');
+        const iframe = document.getElementById('live-iframe');
+        const titleEl = document.getElementById('player-title');
+        
+        iframe.src = url;
+        titleEl.innerText = title;
+        wrapper.classList.add('active');
+        
+        lockURL(); // Memastikan URL domain tetap tidak berubah
+    }
+
+    function closePlayer() {
+        const wrapper = document.getElementById('player-wrapper');
+        const iframe = document.getElementById('live-iframe');
+        
+        iframe.src = ''; // Matikan suara/stream saat ditutup
+        wrapper.classList.remove('active');
+        
+        lockURL();
+    }
+
+    function closeModal() {
+        document.getElementById('notif-modal').classList.add('hidden');
+    }
+
+    // Panggil langsung tanpa menunggu DOMContentLoaded
+    fetchMatches();
+    setInterval(fetchMatches, 30000); 
+</script>
+
+<!-- IKLAN SOCIAL BAR ADSTERRA -->
+<script data-cfasync="false" src="https://czernik.org/14/87d549fbf15e3e8fe6004a2f26950593"></script>
+</body>
+</html>
